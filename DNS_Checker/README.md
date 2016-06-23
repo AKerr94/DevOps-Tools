@@ -1,0 +1,2 @@
+# DNS Checker
+Provided with a list of source servers and target servers, this script checks that each source server can resolve the target address. Useful for checking DNS is working for multiple hosts e.g. after modifying resolv.conf, installing new DNS servers etc. 
