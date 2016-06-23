@@ -1,0 +1,12 @@
+# Enter details for source, destination and ports to check connections
+# Format:
+# [source]
+# destination,port1,port2 ...
+# 
+# example stanza:
+# [source.server.com]
+# destination.server.com,22
+# destination2.webserver.com,22,80
+
+[SOURCE_ADDRESS_HERE]
+DESTINATION_ADDRESS_HERE,PORT_TO_CHECK
