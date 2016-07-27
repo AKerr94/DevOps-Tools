@@ -19,15 +19,21 @@ CONFIG_FILE="config"
 CONFIG_FILE_OUT="${CONFIG_FILE}_out"
 RESULTS_OUT="test_results"
 TIMEOUT=3
+RESOLVE_CHECK="true"
 
 function usage {
-    echo -e "${YELLOW}Usage: [-i <config file>] [-t <timeout (seconds)>]${NC}"
+    echo -e "${YELLOW}-i: input file, -t: telnet timeout, -r: set false to ignore destination nslookup check (default true)${NC}"
+    echo -e "${YELLOW}Usage: [-i <config file>] [-t <timeout (seconds)>] [-r true/false]${NC}"
 }
 
 while [[ $# > 0 ]]
 do
 flag="$1"
 case $flag in
+    -h|--help)
+    usage && exit 0
+    shift
+    ;;
     -i|--config)
     CONFIG_FILE="$2"
     CONFIG_FILE_OUT="${CONFIG_FILE}_out"
@@ -39,6 +45,14 @@ case $flag in
     echo -e "Read in ${YELLOW}${TIMEOUT}${NC}s as timeout"
     shift
     ;;
+    -r|--resolve)
+    if ! [[ "$2" = "true" ]] && ! [[ "$2" = "false" ]]; then
+        echo -e "${RED}-r flag only accepts true/false as args. Got: ${2}${NC}"
+        exit 1
+    fi
+    RESOLVE_CHECK="$2"
+    shift
+    ;;
     *)
     echo -e "${RED}Unknown flag `echo $flag | tr -d '-'`${NC}"
     usage && exit 1
@@ -46,8 +60,14 @@ esac
 shift
 done
 
+echo -e "Enforce destination resolution check: ${YELLOW}${RESOLVE_CHECK}${NC}"
+
 # Call python script to interpret and rewrite config in a more useable format
 ./rewrite_config.py -i ${CONFIG_FILE} -o ${CONFIG_FILE_OUT}
+if ! [ $? -eq 0 ]; then
+    echo -e "${RED}There was an error interpreting the provided config, exiting..${NC}"
+    exit 1
+fi
 
 # Read in interpreted config file, ssh into source and test access to port on destination address
 echo -e "${YELLOW}Testing firewall rules now.. (this may take some time)${NC}"
@@ -78,10 +98,12 @@ do
     fi
 
     # Confirm destination can be resolved
-    ssh -qn ${SOURCE} "nslookup ${DEST} > /dev/null 2>&1"
-    if ! [ $? -eq 0 ]; then
-        echo -e "${RED}${RULE} FAILED - Could not resolve destination" >> ${RESULTS_OUT}
-        continue
+    if [[ "${RESOLVE_CHECK}" = "true" ]]; then
+        ssh -qn ${SOURCE} "nslookup ${DEST} > /dev/null 2>&1"
+        if ! [ $? -eq 0 ]; then
+            echo -e "${RED}${RULE} ERROR - Could not resolve destination (use '-r false' arg to override)" >> ${RESULTS_OUT}
+            continue
+        fi
     fi
 
     # Build commands to execute on remote host and save result based on exit status 

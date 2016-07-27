@@ -58,6 +58,7 @@ def interpretConfig(config_in):
     Interpret config. Flattens/ expands config to array of rules 
     return ["source,destination,port" ...]
     """
+    config_error = False
     try:
         with open(config_in) as f:
             lines = [line.rstrip('\n') for line in f]
@@ -65,20 +66,35 @@ def interpretConfig(config_in):
         
         config = []
         while(len(lines) > 0):
-            line = lines.pop(0)
+            # Process one line at a time, removing whitespace
+            line = lines.pop(0).replace(' ', '')
+            # Ignore comments
             if line[0] == '#':
                 continue
+            # Search for source node declaration
             elif line[0] == '[' and line[-1] == ']':
                 source = line.lstrip('[').rstrip(']')
+            # Other lines should be comma-separated destination,port(s) declarations
             else:
                 line = filter(None, line.split(','))
+                if not line:
+                    logging.error("Invalid destination provided for a rule under stanza '%s'" % source)
+                    continue
                 destination = line.pop(0)
+                # Catch invalid declarations, print error message and set error var 
+                if len(line) == 0:
+                    logging.error("No port provided for rule '%s' to '%s'" % (source, destination))
+                    config_error = True
+                    continue
                 for port in line:
                     config.append("%s,%s,%s" % (source, destination, port)) 
     except:
         logging.error("Missing or invalid config '%s'" % config_in)
         sys.exit(1)
 
+    # Exit if there were any errors
+    if config_error:
+        sys.exit(1)
     return config
 
 def writeConfig(config, config_out):
