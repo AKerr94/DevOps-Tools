@@ -33,7 +33,7 @@ case $flag in
     ;;
     -t|--targets)
     TARGET_LIST="$2"
-    echo -e "Read in ${YELLOW}${TARGET_LIST}${NC}s as targets list location"
+    echo -e "Read in ${YELLOW}${TARGET_LIST}${NC} as targets list location"
     shift
     ;;
     -o|--timeout)
