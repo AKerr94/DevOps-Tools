@@ -75,8 +75,8 @@ after_date=$(sed -n '3p' "${TMP_FILE}2")
 rm -f "${TMP_FILE}" "${TMP_FILE}2"
 
 # Convert human readable dates to Unix time
-before_date_epoch=$(date +%s -d "${before_date}")
-after_date_epoch=$(date +%s -d "${after_date}")
+before_date_epoch=$(date -j -f '%b %d %T %Y %Z' "${before_date}" "+%s")
+after_date_epoch=$(date -j -f '%b %d %T %Y %Z' "${after_date}" "+%s")
 current_epoch=$(date +%s)
 
 # Check that cert is valid for current date 
