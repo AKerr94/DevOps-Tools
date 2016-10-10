@@ -4,7 +4,7 @@
 # Validates the certificate from a given host and port 
 # Provide warning if cert is not yet active, or has already or will soon expire
 
-TMP_FILE="/tmp/validate_cert.tmp"
+LBE_SSL_TMP_FILE="/tmp/validate_cert.tmp"
 
 function secondsToDays {
     # Remove any - sign and convert seconds (int) to days (2dp)
@@ -45,8 +45,8 @@ shift
 done
 
 # Validate necessary variables are set 
-if [ -z $TMP_FILE ]; then
-    echo "Config error: Null temp file variable. Please make sure TMP_FILE is defined."
+if [ -z $LBE_SSL_TMP_FILE ]; then
+    echo "Config error: Null temp file variable. Please make sure LBE_SSL_TMP_FILE is defined."
     exit 2
 elif [ -z $HOST ]; then
     echo -e "Usage error: No server name defined. Please pass a server name with -s\n"
@@ -58,21 +58,31 @@ fi
 
 # Extract cert details from address
 output=$(openssl s_client -connect "${HOST}:${PORT}" </dev/null 2>/dev/null \
-    | openssl x509 -noout -subject -dates > ${TMP_FILE})
+    | openssl x509 -noout -subject -dates > ${LBE_SSL_TMP_FILE})
 
 if [ $? -ne 0 ]; then
     echo "ERROR: Could not retrieve SSL certificate from ${HOST}:${PORT}"
     exit 2
 fi
 
-sed -E "s/^[^/]*= ?//g" "$TMP_FILE" > "${TMP_FILE}2"
+sed -E "s/^[^/]*= ?//g" "$LBE_SSL_TMP_FILE" > "${LBE_SSL_TMP_FILE}2"
 
 # Extract individual dates for cert expiry 
-before_date=$(sed -n '2p' "${TMP_FILE}2")
-after_date=$(sed -n '3p' "${TMP_FILE}2")
+before_date=$(sed -n '2p' "${LBE_SSL_TMP_FILE}2")
+after_date=$(sed -n '3p' "${LBE_SSL_TMP_FILE}2")
 
 # Cleanup temp files
-rm -f "${TMP_FILE}" "${TMP_FILE}2"
+if [[ -f "${LBE_SSL_TMP_FILE} "]] && [[ -f "${LBE_SSL_TMP_FILE}2" ]]; then
+    if $(dirname "${LBE_SSL_TMP_FILE}" = /tmp) && $(dirname "${LBE_SSL_TMP_FILE}2" = /tmp); then
+        rm -f "${LBE_SSL_TMP_FILE}" "${LBE_SSL_TMP_FILE}2"
+    else
+        echo "ERROR: Invalid temp file variable location - should be in /tmp"
+        exit 2
+    fi
+else
+    echo "ERROR: temp file does not appear to be a file"
+    exit 2
+fi
 
 # Convert human readable dates to Unix time
 before_date_epoch=$(date -j -f '%b %d %T %Y %Z' "${before_date}" "+%s")
