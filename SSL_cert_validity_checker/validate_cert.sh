@@ -72,7 +72,7 @@ before_date=$(sed -n '2p' "${LBE_SSL_TMP_FILE}2")
 after_date=$(sed -n '3p' "${LBE_SSL_TMP_FILE}2")
 
 # Cleanup temp files
-if [[ -f "${LBE_SSL_TMP_FILE} "]] && [[ -f "${LBE_SSL_TMP_FILE}2" ]]; then
+if [[ -f "${LBE_SSL_TMP_FILE}" ]] && [[ -f "${LBE_SSL_TMP_FILE}2" ]]; then
     if $(dirname "${LBE_SSL_TMP_FILE}" = /tmp) && $(dirname "${LBE_SSL_TMP_FILE}2" = /tmp); then
         rm -f "${LBE_SSL_TMP_FILE}" "${LBE_SSL_TMP_FILE}2"
     else
