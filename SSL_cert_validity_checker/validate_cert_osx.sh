@@ -4,7 +4,7 @@
 # Validates the certificate from a given host and port 
 # Provide warning if cert is not yet active, or has already or will soon expire
 
-TMP_FILE="validate_cert.tmp"
+TMP_FILE="/tmp/validate_cert.tmp"
 
 function secondsToDays {
     # Remove any - sign and convert seconds (int) to days (2dp)
@@ -39,7 +39,7 @@ case $flag in
         ;;
     *)
         echo -e "Unknown flag $(echo $flag | tr -d '-')"
-        usage; exit 1
+        usage; exit 2
 esac
 shift
 done
@@ -47,13 +47,13 @@ done
 # Validate necessary variables are set 
 if [ -z $TMP_FILE ]; then
     echo "Config error: Null temp file variable. Please make sure TMP_FILE is defined."
-    exit 1
+    exit 2
 elif [ -z $HOST ]; then
     echo -e "Usage error: No server name defined. Please pass a server name with -s\n"
-    usage; exit 1
+    usage; exit 2
 elif [ -z $PORT ]; then
     echo -e "Usage error: No port defined. Please pass a port with -p\n"
-    usage; exit 1
+    usage; exit 2
 fi
 
 # Extract cert details from address
@@ -62,7 +62,7 @@ output=$(openssl s_client -connect "${HOST}:${PORT}" </dev/null 2>/dev/null \
 
 if [ $? -ne 0 ]; then
     echo "ERROR: Could not retrieve SSL certificate from ${HOST}:${PORT}"
-    exit 1
+    exit 2
 fi
 
 sed -E "s/^[^/]*= ?//g" "$TMP_FILE" > "${TMP_FILE}2"
@@ -84,14 +84,14 @@ before_check=$(($before_date_epoch - $current_epoch))
 
 if [[ $before_check -gt 0 ]]; then
     echo "ERROR: Cert is not valid for another $(secondsToDays ${before_check}) days"
-    exit 1
+    exit 2
 fi
 
 after_check=$(($current_epoch - $after_date_epoch))
 
 if [[ $after_check -gt 0 ]]; then
     echo "ERROR: Cert expired $(secondsToDays ${after_check}) days ago"
-    exit 1
+    exit 2
 elif [[ $after_check -gt -604800 ]]; then
     echo "WARNING: Cert expires in the next 7 days:" \
         "$(secondsToDays ${after_check}) days remaining!"
