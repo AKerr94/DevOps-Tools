@@ -4,7 +4,7 @@
 # Validates the certificate from a given host and port 
 # Provide warning if cert is not yet active, or has already or will soon expire
 
-LBE_SSL_TMP_FILE="/tmp/validate_cert.tmp"
+LBE_SSL_TMP_FILE_PREFIX="/tmp/validate_cert"
 
 function secondsToDays {
     # Remove any - sign and convert seconds (int) to days (2dp)
@@ -45,8 +45,9 @@ shift
 done
 
 # Validate necessary variables are set 
-if [ -z $LBE_SSL_TMP_FILE ]; then
-    echo 'Config error: Null temp file variable. Please make sure $LBE_SSL_TMP_FILE is defined.'
+if [ -z $LBE_SSL_TMP_FILE_PREFIX ]; then
+    echo 'Config error: Null temp file prefix variable.' \
+        'Please make sure $LBE_SSL_TMP_FILE_PREFIX is defined.'
     exit 2
 elif [ -z $HOST ]; then
     echo -e "Usage error: No server name defined. Please pass a server name with -s\n"
@@ -55,6 +56,9 @@ elif [ -z $PORT ]; then
     echo -e "Usage error: No port defined. Please pass a port with -p\n"
     usage; exit 2
 fi
+
+# Set unique temp file var for this host
+LBE_SSL_TMP_FILE="${LBE_SSL_TMP_FILE_PREFIX}_${HOST}.tmp"
 
 # Extract cert details from address
 output=$(openssl s_client -connect "${HOST}:${PORT}" </dev/null 2>/dev/null \
@@ -71,9 +75,10 @@ sed -E "s/^[^/]*= ?//g" "$LBE_SSL_TMP_FILE" > "${LBE_SSL_TMP_FILE}2"
 before_date=$(sed -n '2p' "${LBE_SSL_TMP_FILE}2")
 after_date=$(sed -n '3p' "${LBE_SSL_TMP_FILE}2")
 
-# Cleanup temp files
+# Validate variables are properly set and temp files exist before removing them
 if [[ -f "${LBE_SSL_TMP_FILE}" ]] && [[ -f "${LBE_SSL_TMP_FILE}2" ]]; then
-    if $(dirname "${LBE_SSL_TMP_FILE}" = /tmp) && $(dirname "${LBE_SSL_TMP_FILE}2" = /tmp); then
+    if [[ $(dirname "${LBE_SSL_TMP_FILE}") = "/tmp" ]] && \
+       [[ $(dirname "${LBE_SSL_TMP_FILE}2") = "/tmp" ]]; then
         rm -f "${LBE_SSL_TMP_FILE}" "${LBE_SSL_TMP_FILE}2"
     else
         echo "ERROR: Invalid temp file variable location - should be in /tmp"
