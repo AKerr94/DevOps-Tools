@@ -107,6 +107,10 @@ after_check=$(($current_epoch - $after_date_epoch))
 if [[ $after_check -gt 0 ]]; then
     echo "ERROR: Cert expired $(secondsToDays ${after_check}) days ago"
     exit 2
+elif [[ $after_check -gt -172800 ]]; then
+    echo "CRITICAL: Cert expires in the next 2 days:" \
+        "$(secondsToDays ${after_check}) days remaining!"
+    exit 2
 elif [[ $after_check -gt -604800 ]]; then
     echo "WARNING: Cert expires in the next 7 days:" \
         "$(secondsToDays ${after_check}) days remaining!"
