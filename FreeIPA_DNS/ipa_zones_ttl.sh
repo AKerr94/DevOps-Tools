@@ -54,7 +54,7 @@ function setAllZonesTTL {
         done
         exit 0
     else
-        echo "${RED}PARAMETER ERROR: Not a positive integer: ${TTL}${NC}"
+        echo -e "${RED}PARAMETER ERROR: Not a positive integer: ${TTL}${NC}"
         usage && exit 1
     fi
 }
