@@ -14,13 +14,22 @@ Usage:
      -r        Remove explicit TTLs for all zones
 ```
 
-Example commands:
+# Example commands
 
-./ipa_zones_ttl.sh -a -l -f
 List all zones and their TTL, do not ask for confirmation
 
-./ipa_zones_ttl.sh -i my_zones -s 21600
+```
+./ipa_zones_ttl.sh -a -l -f
+```
+
 Set all zones from file 'my_zones' to 21600 seconds TTL. Asks for confirmation
 
-./ipa_zones_ttl.sh -a -r
+```
+./ipa_zones_ttl.sh -i my_zones -s 21600
+```
+
 Remove explicit TTL value from all zones (defaults to 24 hours). Asks for confirmation
+
+```
+./ipa_zones_ttl.sh -a -r
+```
