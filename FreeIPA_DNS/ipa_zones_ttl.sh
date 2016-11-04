@@ -30,9 +30,9 @@ function usage {
             "    [-m INT]  Max amount of zones LDAP search will return\n" \
             "    -i FILE   Pass file with list of zones to run on\n" \
             "    -a        Apply to all zones\n" \
-            "    -s INT    Set all zones' TTL to <INT>\n" \
-            "    -l        List all zones' TTLs\n" \
-            "    -r        Remove explicit TTLs for all zones\n${NC}"
+            "    -s INT    Set zones' TTL to <INT>\n" \
+            "    -l        List zones' TTLs\n" \
+            "    -r        Remove explicit TTLs for zones\n${NC}"
 }
 
 function userValidation {
